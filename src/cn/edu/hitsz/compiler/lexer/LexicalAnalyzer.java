@@ -4,9 +4,10 @@ import cn.edu.hitsz.compiler.error.ErrorDescription;
 import cn.edu.hitsz.compiler.symtab.SymbolTable;
 import cn.edu.hitsz.compiler.utils.FileUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,7 +25,7 @@ import java.util.stream.StreamSupport;
  */
 public class LexicalAnalyzer {
     private final SymbolTable symbolTable;
-    private String codeAll = "";
+    private FileCharacterIterator iterator = null;
     private final List<Token> tokens = new LinkedList<>();
 
     public LexicalAnalyzer(SymbolTable symbolTable) {
@@ -41,22 +42,11 @@ public class LexicalAnalyzer {
         // TODO: 词法分析前的缓冲区实现
         // 可自由实现各类缓冲区
         // 或直接采用完整读入方法
-        final var file = new File(path);
-        final var builder = new StringBuilder();
         try {
-            final var fileInputStream = new FileInputStream(file);
-            final var inputStreamReader = new InputStreamReader(fileInputStream);
-            final var reader = new BufferedReader(inputStreamReader);
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-                // 保持行号
-                builder.append("\n");
-            }
+            iterator = new FileCharacterIterator(Files.newBufferedReader(Paths.get(path)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        codeAll = builder.toString();
     }
 
     /**
@@ -64,14 +54,13 @@ public class LexicalAnalyzer {
      * 需要维护实验一所需的符号表条目, 而得在语法分析中才能确定的符号表条目的成员可以先设置为 null
      */
     public void run() {
-        // TODO: 自动机实现的词法分析过程
+        // 自动机实现的词法分析过程
         int state = 0;
         final var accepts = new HashSet<>(Arrays.asList(15, 17, 19, 20, 22, 23, 25, 26, 27, 28, 29, 30, 31, 32));
         final var keyWords = new HashSet<>(Arrays.asList(
                 "int",
                 "return"
         ));
-        final var iterator = new StringCharacterIterator(codeAll);
         StringBuilder idCode = new StringBuilder();
         StringBuilder number = new StringBuilder();
         while (iterator.current() != CharacterIterator.DONE) {
@@ -180,7 +169,7 @@ public class LexicalAnalyzer {
      * @return Token 列表
      */
     public Iterable<Token> getTokens() {
-        // TODO: 从词法分析过程中获取 Token 列表
+        // 从词法分析过程中获取 Token 列表
         // 词法分析过程可以使用 Stream 或 Iterator 实现按需分析
         // 亦可以直接分析完整个文件
         // 总之实现过程能转化为一列表即可
