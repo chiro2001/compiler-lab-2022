@@ -134,9 +134,12 @@ public class LexicalAnalyzer {
                     System.out.printf("accept [%d] id=%s, num=%s\n", nextState, idCode, number);
                     tokens.add(switch (nextState) {
                         case 15 -> {
-                            final var string = idCode.toString();
+                            final var s = idCode.toString();
                             idCode.setLength(0);
-                            yield keyWords.contains(string) ? Token.simple(string) : Token.normal("id", string);
+                            if (!keyWords.contains(s) && !symbolTable.has(s)) {
+                                symbolTable.add(s);
+                            }
+                            yield keyWords.contains(s) ? Token.simple(s) : Token.normal("id", s);
                         }
                         case 17 -> {
                             final var token = Token.normal("IntConst", number.toString());
