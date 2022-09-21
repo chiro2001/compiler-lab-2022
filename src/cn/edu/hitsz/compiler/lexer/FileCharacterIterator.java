@@ -1,55 +1,42 @@
 package cn.edu.hitsz.compiler.lexer;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.text.StringCharacterIterator;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Iterator;
 
-public class FileCharacterIterator {
-    static char DONE = StringCharacterIterator.DONE;
-    private String line = null;
-    private StringCharacterIterator iterator = null;
-    private final BufferedReader reader;
+/**
+ * @author chiro
+ */
+public class FileCharacterIterator implements Iterable<Character>, Iterator<Character> {
+    private final FileCharacterIteratorData data;
 
-    FileCharacterIterator(BufferedReader reader) {
-        this.reader = reader;
+    private FileCharacterIterator(FileCharacterIteratorData data) {
+        this.data = data;
     }
 
-    public char current() {
-        try {
-            if (iterator != null) {
-                if (iterator.current() != StringCharacterIterator.DONE) {
-                    return iterator.current();
-                } else {
-                    line = null;
-                }
-            }
-            if (line == null) {
-                line = reader.readLine();
-                if (line == null) {
-                    return DONE;
-                }
-            }
-            iterator = new StringCharacterIterator(line);
-            return iterator.current();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public Iterator<Character> iterator() {
+        return new FileCharacterIterator(data.next());
     }
 
-    public void next() {
-        try {
-            if (iterator != null) {
-                if (iterator.current() != StringCharacterIterator.DONE) {
-                    iterator.next();
-                } else {
-                    line = null;
-                }
-            }
-            if (line == null) {
-                line = reader.readLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    static public FileCharacterIterator build(String path) throws IOException {
+        return new FileCharacterIterator(new FileCharacterIteratorData(Files.newBufferedReader(Paths.get(path))));
+    }
+
+    @Override
+    public boolean hasNext() {
+        return data.current() != FileCharacterIteratorData.DONE;
+    }
+
+    @Override
+    public Character next() {
+        Character c = data.current();
+        data.next();
+        return c;
+    }
+
+    public Character current() {
+        return data.current();
     }
 }

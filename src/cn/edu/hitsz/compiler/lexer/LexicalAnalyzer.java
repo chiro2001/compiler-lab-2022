@@ -43,7 +43,7 @@ public class LexicalAnalyzer {
         // 可自由实现各类缓冲区
         // 或直接采用完整读入方法
         try {
-            iterator = new FileCharacterIterator(Files.newBufferedReader(Paths.get(path)));
+            iterator = FileCharacterIterator.build(path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -63,8 +63,8 @@ public class LexicalAnalyzer {
         ));
         StringBuilder idCode = new StringBuilder();
         StringBuilder number = new StringBuilder();
-        while (iterator.current() != CharacterIterator.DONE) {
-            while (!accepts.contains(state) && iterator.current() != CharacterIterator.DONE) {
+        while (iterator.hasNext()) {
+            while (!accepts.contains(state) && iterator.hasNext()) {
                 final var c = iterator.current();
                 System.out.printf("[%d] read: %s\n", state, c == '\n' ? "\\n" : c);
                 boolean blank = c == ' ' || c == '\t' || c == '\n';
