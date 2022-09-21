@@ -1,6 +1,5 @@
 package cn.edu.hitsz.compiler.lexer;
 
-import cn.edu.hitsz.compiler.NotImplementedException;
 import cn.edu.hitsz.compiler.error.ErrorDescription;
 import cn.edu.hitsz.compiler.symtab.SymbolTable;
 import cn.edu.hitsz.compiler.utils.FileUtils;
@@ -8,8 +7,10 @@ import cn.edu.hitsz.compiler.utils.FileUtils;
 import java.io.*;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.StreamSupport;
 
 /**
@@ -24,7 +25,7 @@ import java.util.stream.StreamSupport;
 public class LexicalAnalyzer {
     private final SymbolTable symbolTable;
     private String codeAll = "";
-    private List<Token> tokens = new LinkedList<>();
+    private final List<Token> tokens = new LinkedList<>();
 
     public LexicalAnalyzer(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
@@ -80,6 +81,7 @@ public class LexicalAnalyzer {
                 boolean blank = c == ' ' || c == '\t' || c == '\n';
                 boolean digital = '0' <= c && c <= '9';
                 boolean letter = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
+                boolean semicolon = c == ';';
                 int nextState = switch (state) {
                     case 0 -> switch (c) {
                         case '*' -> 18;
@@ -128,39 +130,45 @@ public class LexicalAnalyzer {
                     default:
                         break;
                 }
-                state = nextState;
+                if (accepts.contains(nextState)) {
+                    System.out.printf("accept [%d] id=%s, num=%s\n", nextState, idCode, number);
+                    tokens.add(switch (nextState) {
+                        case 15 -> {
+                            final var string = idCode.toString();
+                            idCode.setLength(0);
+                            yield keyWords.contains(string) ? Token.simple(string) : Token.normal("id", string);
+                        }
+                        case 17 -> {
+                            final var token = Token.normal("IntConst", number.toString());
+                            number.setLength(0);
+                            yield token;
+                        }
+                        case 19 -> Token.simple("**");
+                        case 20 -> Token.simple("*");
+                        case 22 -> Token.simple("==");
+                        case 23 -> Token.simple("=");
+                        case 26 -> Token.simple("(");
+                        case 27 -> Token.simple(")");
+                        case 28 -> Token.simple("Semicolon");
+                        case 29 -> Token.simple("+");
+                        case 30 -> Token.simple("-");
+                        case 31 -> Token.simple("/");
+                        case 32 -> Token.simple(",");
+                        default -> throw new RuntimeException(String.format(ErrorDescription.LEX_NO_STATE, state));
+                    });
+                }
+                if (nextState != 28 && semicolon) {
+                    System.out.printf("accept [%d] Semicolon\n", nextState);
+                    tokens.add(Token.simple("Semicolon"));
+                }
                 iterator.next();
-            }
-            if (accepts.contains(state)) {
-                System.out.printf("accept [%d] id=%s, num=%s\n", state, idCode, number);
-                tokens.add(switch (state) {
-                    case 15 -> {
-                        final var string = idCode.toString();
-                        idCode.setLength(0);
-                        yield keyWords.contains(string) ? Token.simple(string) : Token.normal("id", string);
-                    }
-                    case 17 -> {
-                        final var token = Token.normal("IntConst", number.toString());
-                        number.setLength(0);
-                        yield token;
-                    }
-                    case 19 -> Token.simple("**");
-                    case 20 -> Token.simple("*");
-                    case 22 -> Token.simple("==");
-                    case 23 -> Token.simple("=");
-                    case 26 -> Token.simple("(");
-                    case 27 -> Token.simple(")");
-                    case 28 -> Token.simple("Semicolon");
-                    case 29 -> Token.simple("+");
-                    case 30 -> Token.simple("-");
-                    case 31 -> Token.simple("/");
-                    case 32 -> Token.simple(",");
-                    default -> throw new RuntimeException(String.format(ErrorDescription.LEX_NO_STATE, state));
-                });
-                state = 0;
+                state = nextState;
             }
             assert state > 0;
+            state = 0;
         }
+        System.out.println("accept [$] Done");
+        tokens.add(Token.simple("$"));
     }
 
     /**
