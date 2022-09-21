@@ -76,6 +76,7 @@ public class LexicalAnalyzer {
         while (iterator.current() != CharacterIterator.DONE) {
             while (!accepts.contains(state) && iterator.current() != CharacterIterator.DONE) {
                 final var c = iterator.current();
+                System.out.printf("[%d] read: %s\n", state, c == '\n' ? "\\n" : c);
                 boolean blank = c == ' ' || c == '\t' || c == '\n';
                 boolean digital = '0' <= c && c <= '9';
                 boolean letter = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
@@ -121,8 +122,8 @@ public class LexicalAnalyzer {
                         }
                         break;
                     case 14:
-                        if (nextState != 14 && nextState != 15) {
-                            idCode.setLength(0);
+                        if (nextState == 14) {
+                            idCode.append(c);
                         }
                     default:
                         break;
@@ -131,6 +132,7 @@ public class LexicalAnalyzer {
                 iterator.next();
             }
             if (accepts.contains(state)) {
+                System.out.printf("accept [%d] id=%s, num=%s\n", state, idCode, number);
                 tokens.add(switch (state) {
                     case 15 -> {
                         final var string = idCode.toString();
@@ -138,20 +140,27 @@ public class LexicalAnalyzer {
                         yield keyWords.contains(string) ? Token.simple(string) : Token.normal("id", string);
                     }
                     case 17 -> {
-                        final var token = Token.normal("intConst", number.toString());
+                        final var token = Token.normal("IntConst", number.toString());
                         number.setLength(0);
                         yield token;
                     }
-                    case 19 -> Token.simple("*");
-                    case 20 -> Token.simple("NULTI");
-                    case 22 -> Token.simple("=");
-                    case 23 -> Token.simple("ASSIGN");
+                    case 19 -> Token.simple("**");
+                    case 20 -> Token.simple("*");
+                    case 22 -> Token.simple("==");
+                    case 23 -> Token.simple("=");
+                    case 26 -> Token.simple("(");
+                    case 27 -> Token.simple(")");
+                    case 28 -> Token.simple("Semicolon");
+                    case 29 -> Token.simple("+");
+                    case 30 -> Token.simple("-");
+                    case 31 -> Token.simple("/");
+                    case 32 -> Token.simple(",");
                     default -> throw new RuntimeException(String.format(ErrorDescription.LEX_NO_STATE, state));
                 });
+                state = 0;
             }
-
+            assert state > 0;
         }
-        throw new NotImplementedException();
     }
 
     /**
@@ -164,7 +173,8 @@ public class LexicalAnalyzer {
         // 词法分析过程可以使用 Stream 或 Iterator 实现按需分析
         // 亦可以直接分析完整个文件
         // 总之实现过程能转化为一列表即可
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
+        return tokens;
     }
 
     public void dumpTokens(String path) {

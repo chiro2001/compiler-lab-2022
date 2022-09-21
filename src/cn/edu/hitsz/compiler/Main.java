@@ -16,6 +16,9 @@ import cn.edu.hitsz.compiler.utils.IREmulator;
 
 import java.util.Objects;
 
+/**
+ * @author chiro
+ */
 public class Main {
     public static void main(String[] args) {
         // 构建符号表以供各部分使用
