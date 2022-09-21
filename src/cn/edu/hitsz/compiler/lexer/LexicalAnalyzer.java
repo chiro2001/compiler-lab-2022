@@ -171,7 +171,7 @@ public class LexicalAnalyzer {
             state = 0;
         }
         System.out.println("accept [$] Done");
-        tokens.add(Token.simple("$"));
+        tokens.add(Token.eof());
     }
 
     /**
