@@ -36,7 +36,7 @@ public class LexicalAnalyzer {
      * @param path 路径
      */
     public void loadFile(String path) {
-        // TODO: 词法分析前的缓冲区实现
+        // 词法分析前的缓冲区实现
         // 可自由实现各类缓冲区
         // 或直接采用完整读入方法
         try {
