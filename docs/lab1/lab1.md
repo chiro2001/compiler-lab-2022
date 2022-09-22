@@ -203,3 +203,177 @@ DFA程序采用经典 3 段有限自动机写法。
     }
 ```
 
+### 运行结果
+
+```shell
+# java ...
+[ 0] read: i, buffer: ￿￿int 
+[14] read: n, buffer: ￿￿int 
+[14] read: t, buffer: int re
+[14] read:  , buffer: int re
+accept [15] id=int, num=
+[ 0] read: r, buffer: t resu
+[14] read: e, buffer: t resu
+[14] read: s, buffer: result
+[14] read: u, buffer: result
+[14] read: l, buffer: sult;i
+[14] read: t, buffer: sult;i
+[14] read: ;, buffer: lt;int
+accept [15] id=result, num=
+accept [15] Semicolon
+[ 0] read: i, buffer: lt;int
+[14] read: n, buffer: ;int a
+[14] read: t, buffer: ;int a
+[14] read:  , buffer: nt a;i
+accept [15] id=int, num=
+[ 0] read: a, buffer: nt a;i
+[14] read: ;, buffer:  a;int
+accept [15] id=a, num=
+accept [15] Semicolon
+[ 0] read: i, buffer:  a;int
+[14] read: n, buffer: ;int b
+[14] read: t, buffer: ;int b
+[14] read:  , buffer: nt b;i
+accept [15] id=int, num=
+[ 0] read: b, buffer: nt b;i
+[14] read: ;, buffer:  b;int
+accept [15] id=b, num=
+accept [15] Semicolon
+[ 0] read: i, buffer:  b;int
+[14] read: n, buffer: ;int c
+[14] read: t, buffer: ;int c
+[14] read:  , buffer: nt c;a
+accept [15] id=int, num=
+[ 0] read: c, buffer: nt c;a
+[14] read: ;, buffer:  c;a =
+accept [15] id=c, num=
+accept [15] Semicolon
+[ 0] read: a, buffer:  c;a =
+[14] read:  , buffer: ;a = 8
+accept [15] id=a, num=
+[ 0] read: =, buffer: ;a = 8
+[21] read:  , buffer:  = 8;b
+accept [23] id=, num=
+[ 0] read: 8, buffer:  = 8;b
+[16] read: ;, buffer:  8;b =
+accept [17] id=, num=8
+accept [17] Semicolon
+[ 0] read: b, buffer:  8;b =
+[14] read:  , buffer: ;b = 5
+accept [15] id=b, num=
+[ 0] read: =, buffer: ;b = 5
+[21] read:  , buffer:  = 5;c
+accept [23] id=, num=
+[ 0] read: 5, buffer:  = 5;c
+[16] read: ;, buffer:  5;c =
+accept [17] id=, num=5
+accept [17] Semicolon
+[ 0] read: c, buffer:  5;c =
+[14] read:  , buffer: ;c = 3
+accept [15] id=c, num=
+[ 0] read: =, buffer: ;c = 3
+[21] read:  , buffer:  = 3 -
+accept [23] id=, num=
+[ 0] read: 3, buffer:  = 3 -
+[16] read:  , buffer:  3 - a
+accept [17] id=, num=3
+[ 0] read: -, buffer:  3 - a
+accept [30] id=, num=
+[ 0] read:  , buffer:  - a;r
+[ 0] read: a, buffer:  - a;r
+[14] read: ;, buffer:  a;res
+accept [15] id=a, num=
+accept [15] Semicolon
+[ 0] read: r, buffer:  a;res
+[14] read: e, buffer: ;resul
+[14] read: s, buffer: ;resul
+[14] read: u, buffer: esult 
+[14] read: l, buffer: esult 
+[14] read: t, buffer: ult = 
+[14] read:  , buffer: ult = 
+accept [15] id=result, num=
+[ 0] read: =, buffer: t = a 
+[21] read:  , buffer: t = a 
+accept [23] id=, num=
+[ 0] read: a, buffer: = a * 
+[14] read:  , buffer: = a * 
+accept [15] id=a, num=
+[ 0] read: *, buffer: a * b 
+[18] read:  , buffer: a * b 
+accept [20] id=, num=
+[ 0] read: b, buffer: * b - 
+[14] read:  , buffer: * b - 
+accept [15] id=b, num=
+[ 0] read: -, buffer: b - ( 
+accept [30] id=, num=
+[ 0] read:  , buffer: b - ( 
+[ 0] read: (, buffer: - ( 3 
+accept [26] id=, num=
+[ 0] read:  , buffer: - ( 3 
+[ 0] read: 3, buffer: ( 3 + 
+[16] read:  , buffer: ( 3 + 
+accept [17] id=, num=3
+[ 0] read: +, buffer: 3 + b 
+accept [29] id=, num=
+[ 0] read:  , buffer: 3 + b 
+[ 0] read: b, buffer: + b ) 
+[14] read:  , buffer: + b ) 
+accept [15] id=b, num=
+[ 0] read: ), buffer: b ) * 
+accept [27] id=, num=
+[ 0] read:  , buffer: b ) * 
+[ 0] read: *, buffer: ) * ( 
+[18] read:  , buffer: ) * ( 
+accept [20] id=, num=
+[ 0] read: (, buffer: * ( c 
+accept [26] id=, num=
+[ 0] read:  , buffer: * ( c 
+[ 0] read: c, buffer: ( c - 
+[14] read:  , buffer: ( c - 
+accept [15] id=c, num=
+[ 0] read: -, buffer: c - a 
+accept [30] id=, num=
+[ 0] read:  , buffer: c - a 
+[ 0] read: a, buffer: - a );
+[14] read:  , buffer: - a );
+accept [15] id=a, num=
+[ 0] read: ), buffer: a );re
+accept [27] id=, num=
+[ 0] read: ;, buffer: a );re
+accept [28] id=, num=
+[ 0] read: r, buffer: );retu
+[14] read: e, buffer: );retu
+[14] read: t, buffer: return
+[14] read: u, buffer: return
+[14] read: r, buffer: turn r
+[14] read: n, buffer: turn r
+[14] read:  , buffer: rn res
+accept [15] id=return, num=
+[ 0] read: r, buffer: rn res
+[14] read: e, buffer:  resul
+[14] read: s, buffer:  resul
+[14] read: u, buffer: esult;
+[14] read: l, buffer: esult;
+[14] read: t, buffer: ult;￿￿
+[14] read: ;, buffer: ult;￿￿
+accept [15] id=result, num=
+accept [15] Semicolon
+accept [$] Done
+Exception in thread "main" cn.edu.hitsz.compiler.NotImplementedException
+	at cn.edu.hitsz.compiler.parser.SyntaxAnalyzer.loadTokens(SyntaxAnalyzer.java:82)
+	at cn.edu.hitsz.compiler.Main.main(Main.java:48)
+
+进程已结束,退出代码1
+```
+
+校验：
+
+```shell
+➜ chiro@chiro-pc  ~/compiler/compiler-lab-2022 git:(master) ✗ python scripts/check-result.py 1
+Diffing lab1 output:
+Diffing file token.txt:
+The src file is the same as std file.
+Diffing file old_symbol_table.txt:
+The src file is the same as std file.
+```
+
