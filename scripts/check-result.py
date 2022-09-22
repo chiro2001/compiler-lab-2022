@@ -11,7 +11,10 @@ rars_path = "/home/test/rars.jar"
 
 
 if __name__ == '__main__':
-    _, _lab_id, std_dir, out_dir = sys.argv
+    if len(sys.argv) == 2:
+        _lab_id, std_dir, out_dir = sys.argv[1], "data/std", "data/out"
+    else:
+        _, _lab_id, std_dir, out_dir = sys.argv
     lab_id = int(_lab_id)
 
     if lab_id <= 3:
