@@ -11,3 +11,8 @@ template/
 
 # for python script
 __pycache__
+
+*.rar
+*.zip
+
+*.pdf
