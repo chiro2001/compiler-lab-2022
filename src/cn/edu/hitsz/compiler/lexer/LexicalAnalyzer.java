@@ -5,9 +5,6 @@ import cn.edu.hitsz.compiler.symtab.SymbolTable;
 import cn.edu.hitsz.compiler.utils.FileUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.CharacterIterator;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -155,8 +152,8 @@ public class LexicalAnalyzer {
                 }
                 iterator.next();
                 state = nextState;
+                assert state > 0;
             }
-            assert state > 0;
             state = 0;
         }
         System.out.println("accept [$] Done");
