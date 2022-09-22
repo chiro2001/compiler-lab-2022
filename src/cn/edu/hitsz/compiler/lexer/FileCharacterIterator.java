@@ -29,9 +29,9 @@ public class FileCharacterIterator implements Iterable<Character>, Iterator<Char
         buffer = new LinkedList<>();
         this.bufferSize = bufferSize;
         for (int i = 0; i < bufferSize; i++) {
-            buffer.add(dataIterator.current());
-            dataIterator.next();
+            buffer.add(FileCharacterIteratorData.DONE);
         }
+        maintenance();
     }
 
     public FileCharacterIterator(FileCharacterIteratorData dataIterator, List<Character> buffer, int bufferSize) {
@@ -63,12 +63,18 @@ public class FileCharacterIterator implements Iterable<Character>, Iterator<Char
         }
     }
 
+    private void maintenance() {
+        while (buffer.size() < (BUFFER_PRELOAD_BATCH + 1) * bufferSize) {
+            updateBuffer();
+        }
+    }
+
     @Override
     public boolean hasNext() {
         if (bufferSize == 0) {
             return dataIterator.current() != FileCharacterIteratorData.DONE;
         } else {
-            return buffer.get(bufferOffset) != FileCharacterIteratorData.DONE;
+            return buffer.get(bufferOffset + bufferSize) != FileCharacterIteratorData.DONE;
         }
     }
 
@@ -80,14 +86,12 @@ public class FileCharacterIterator implements Iterable<Character>, Iterator<Char
             return c;
         } else {
             bufferOffset += 1;
-            while (buffer.size() <= BUFFER_PRELOAD_BATCH * bufferSize) {
-                updateBuffer();
-            }
             if (bufferOffset >= bufferSize) {
                 buffer.subList(0, bufferSize).clear();
                 bufferOffset %= bufferSize;
             }
-            return buffer.get(bufferOffset);
+            maintenance();
+            return buffer.get(bufferOffset + bufferSize);
         }
     }
 
@@ -95,7 +99,7 @@ public class FileCharacterIterator implements Iterable<Character>, Iterator<Char
         if (bufferSize == 0) {
             return dataIterator.current();
         } else {
-            return buffer.get(bufferOffset);
+            return buffer.get(bufferOffset + bufferSize);
         }
     }
 
@@ -103,9 +107,18 @@ public class FileCharacterIterator implements Iterable<Character>, Iterator<Char
         if (bufferSize == 0) {
             return current();
         }
-        while (index + bufferOffset >= buffer.size()) {
+        while (index + bufferSize + bufferOffset >= buffer.size()) {
             updateBuffer();
         }
-        return buffer.get(index + bufferOffset);
+        return buffer.get(index + bufferOffset + bufferSize);
+    }
+
+    public Character last(int index) {
+        assert bufferSize != 0;
+        return buffer.get(bufferOffset + bufferSize - index);
+    }
+
+    public List<Character> getBuffer() {
+        return buffer;
     }
 }

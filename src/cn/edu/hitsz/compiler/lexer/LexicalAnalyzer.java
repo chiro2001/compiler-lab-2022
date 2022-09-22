@@ -63,7 +63,7 @@ public class LexicalAnalyzer {
         while (iterator.hasNext()) {
             while (!accepts.contains(state) && iterator.hasNext()) {
                 final var c = iterator.current();
-                System.out.printf("[%d] read: %s\n", state, c == '\n' ? "\\n" : c);
+                 System.out.printf("[%2d] read: %s, buffer: %s\n", state, c == '\n' ? "\\n" : c, iterator.getBuffer().stream().map(a -> a == '\n' ? ' ' : a).map(Object::toString).reduce((a, b) -> a + b).orElseThrow());
                 boolean blank = c == ' ' || c == '\t' || c == '\n';
                 boolean digital = '0' <= c && c <= '9';
                 boolean letter = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
