@@ -11,36 +11,38 @@ import java.util.List;
  * @author chiro
  */
 public class FileCharacterIterator implements Iterable<Character>, Iterator<Character> {
-    private final FileCharacterIteratorData data;
+    private final FileCharacterIteratorData dataIterator;
 
     private final List<Character> buffer;
+    private int bufferOffset = 0;
     private final int bufferSize;
+    private final static int BUFFER_PRELOAD_BATCH = 2;
 
-    private FileCharacterIterator(FileCharacterIteratorData data) {
-        this.data = data;
+    private FileCharacterIterator(FileCharacterIteratorData dataIterator) {
+        this.dataIterator = dataIterator;
         bufferSize = 0;
         buffer = new LinkedList<>();
     }
 
-    private FileCharacterIterator(FileCharacterIteratorData data, int bufferSize) {
-        this.data = data;
+    private FileCharacterIterator(FileCharacterIteratorData dataIterator, int bufferSize) {
+        this.dataIterator = dataIterator;
         buffer = new LinkedList<>();
         this.bufferSize = bufferSize;
         for (int i = 0; i < bufferSize; i++) {
-            buffer.add(data.current());
-            data.next();
+            buffer.add(dataIterator.current());
+            dataIterator.next();
         }
     }
 
-    public FileCharacterIterator(FileCharacterIteratorData data, List<Character> buffer, int bufferSize) {
-        this.data = data;
+    public FileCharacterIterator(FileCharacterIteratorData dataIterator, List<Character> buffer, int bufferSize) {
+        this.dataIterator = dataIterator;
         this.buffer = buffer;
         this.bufferSize = bufferSize;
     }
 
     @Override
     public Iterator<Character> iterator() {
-        return new FileCharacterIterator(data, buffer, bufferSize);
+        return new FileCharacterIterator(dataIterator, buffer, bufferSize);
     }
 
     static public FileCharacterIterator build(String path) throws IOException {
@@ -51,35 +53,49 @@ public class FileCharacterIterator implements Iterable<Character>, Iterator<Char
         return new FileCharacterIterator(new FileCharacterIteratorData(Files.newBufferedReader(Paths.get(path))), bufferSize);
     }
 
+    private void updateBuffer() {
+        if (bufferSize == 0) {
+            return;
+        }
+        for (int i = 0; i < bufferSize; i++) {
+            buffer.add(dataIterator.current());
+            dataIterator.next();
+        }
+    }
+
     @Override
     public boolean hasNext() {
         if (bufferSize == 0) {
-            return data.current() != FileCharacterIteratorData.DONE;
+            return dataIterator.current() != FileCharacterIteratorData.DONE;
         } else {
-            return buffer.get(0) != FileCharacterIteratorData.DONE;
+            return buffer.get(bufferOffset) != FileCharacterIteratorData.DONE;
         }
     }
 
     @Override
     public Character next() {
         if (bufferSize == 0) {
-            Character c = data.current();
-            data.next();
+            Character c = dataIterator.current();
+            dataIterator.next();
             return c;
         } else {
-            Character c = data.current();
-            data.next();
-            buffer.remove(0);
-            buffer.add(c);
-            return buffer.get(0);
+            bufferOffset += 1;
+            while (buffer.size() <= BUFFER_PRELOAD_BATCH * bufferSize) {
+                updateBuffer();
+            }
+            if (bufferOffset >= bufferSize) {
+                buffer.subList(0, bufferSize).clear();
+                bufferOffset %= bufferSize;
+            }
+            return buffer.get(bufferOffset);
         }
     }
 
     public Character current() {
         if (bufferSize == 0) {
-            return data.current();
+            return dataIterator.current();
         } else {
-            return buffer.get(0);
+            return buffer.get(bufferOffset);
         }
     }
 
@@ -87,6 +103,9 @@ public class FileCharacterIterator implements Iterable<Character>, Iterator<Char
         if (bufferSize == 0) {
             return current();
         }
-        return buffer.get(index);
+        while (index + bufferOffset >= buffer.size()) {
+            updateBuffer();
+        }
+        return buffer.get(index + bufferOffset);
     }
 }

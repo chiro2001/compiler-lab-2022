@@ -40,7 +40,7 @@ public class LexicalAnalyzer {
         // 可自由实现各类缓冲区
         // 或直接采用完整读入方法
         try {
-            iterator = FileCharacterIterator.build(path);
+            iterator = FileCharacterIterator.build(path, 2);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
