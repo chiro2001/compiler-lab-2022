@@ -20,7 +20,7 @@ import java.util.Objects;
  * @author chiro
  */
 public class Main {
-    public static void main(String[] args) {
+    public static void run(String[] args) {
         // 构建符号表以供各部分使用
         TokenKind.loadTokenKinds();
         final var symbolTable = new SymbolTable();
@@ -78,5 +78,13 @@ public class Main {
         asmGenerator.loadIR(instructions);
         asmGenerator.run();
         asmGenerator.dump(FilePathConfig.ASSEMBLY_LANGUAGE_PATH);
+    }
+
+    public static void main(String[] args) {
+        try {
+            run(args);
+        } catch (NotImplementedException e) {
+            System.out.println("Warning: Something not implemented.");
+        }
     }
 }
