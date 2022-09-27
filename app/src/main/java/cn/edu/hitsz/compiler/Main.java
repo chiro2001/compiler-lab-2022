@@ -84,7 +84,8 @@ public class Main {
         try {
             run(args);
         } catch (NotImplementedException e) {
-            System.out.println("Warning: Something not implemented.");
+            e.printStackTrace();
+            System.out.println("Warning: Something not implemented");
         }
     }
 }

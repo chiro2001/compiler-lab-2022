@@ -29,7 +29,6 @@ public class LexicalAnalyzer {
         this.symbolTable = symbolTable;
     }
 
-
     /**
      * 从给予的路径中读取并加载文件内容
      *
@@ -56,14 +55,15 @@ public class LexicalAnalyzer {
         final var accepts = new HashSet<>(Arrays.asList(15, 17, 19, 20, 22, 23, 25, 26, 27, 28, 29, 30, 31, 32));
         final var keyWords = new HashSet<>(Arrays.asList(
                 "int",
-                "return"
-        ));
+                "return"));
         StringBuilder idCode = new StringBuilder();
         StringBuilder number = new StringBuilder();
         while (iterator.hasNext()) {
             while (!accepts.contains(state) && iterator.hasNext()) {
                 final var c = iterator.current();
-                 System.out.printf("[%2d] read: %s, buffer: %s\n", state, c == '\n' ? "\\n" : c, iterator.getBuffer().stream().map(a -> a == '\n' ? ' ' : a).map(Object::toString).reduce((a, b) -> a + b).orElseThrow());
+                // System.out.printf("[%2d] read: %s, buffer: %s\n", state, c == '\n' ? "\\n" : c,
+                //         iterator.getBuffer().stream().map(a -> a == '\n' ? ' ' : a).map(Object::toString)
+                //                 .reduce((a, b) -> a + b).orElseThrow());
                 boolean blank = c == ' ' || c == '\t' || c == '\n';
                 boolean digital = '0' <= c && c <= '9';
                 boolean letter = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
@@ -117,7 +117,7 @@ public class LexicalAnalyzer {
                         break;
                 }
                 if (accepts.contains(nextState)) {
-                    System.out.printf("accept [%d] id=%s, num=%s\n", nextState, idCode, number);
+                    // System.out.printf("accept [%d] id=%s, num=%s\n", nextState, idCode, number);
                     tokens.add(switch (nextState) {
                         case 15 -> {
                             final var s = idCode.toString();
@@ -147,7 +147,7 @@ public class LexicalAnalyzer {
                     });
                 }
                 if (nextState != 28 && semicolon) {
-                    System.out.printf("accept [%d] Semicolon\n", nextState);
+                    // System.out.printf("accept [%d] Semicolon\n", nextState);
                     tokens.add(Token.simple("Semicolon"));
                 }
                 iterator.next();
@@ -156,7 +156,7 @@ public class LexicalAnalyzer {
             }
             state = 0;
         }
-        System.out.println("accept [$] Done");
+        // System.out.println("accept [$] Done");
         tokens.add(Token.eof());
     }
 
@@ -177,9 +177,7 @@ public class LexicalAnalyzer {
     public void dumpTokens(String path) {
         FileUtils.writeLines(
                 path,
-                StreamSupport.stream(getTokens().spliterator(), false).map(Token::toString).toList()
-        );
+                StreamSupport.stream(getTokens().spliterator(), false).map(Token::toString).toList());
     }
-
 
 }
