@@ -113,15 +113,16 @@ public class SyntaxAnalyzer {
             var stepToken = false;
             while (!stepToken) {
                 var action = lrTable.getAction(stack.peek().state, token);
+                // noinspection AlibabaSwitchStatement
                 switch (action.getKind()) {
-                    case Shift:
+                    case Shift -> {
                         System.out.printf("Shift to state %s\n", action.getStatus());
                         callWhenInShift(action.getStatus(), token);
                         stack.add(new StatusTokenTuple(action.getStatus(), token.getKind()));
                         stepToken = true;
-                        break;
-                    case Reduce:
-                        var production =  action.getProduction();
+                    }
+                    case Reduce -> {
+                        var production = action.getProduction();
                         System.out.printf("Reduce: %s\n", production);
                         for (int i = 0; i < production.body().size(); i++) {
                             stack.pop();
@@ -129,16 +130,16 @@ public class SyntaxAnalyzer {
                         var newStatus = lrTable.getGoto(stack.peek().state, production.head());
                         callWhenInReduce(stack.peek().state, production);
                         stack.add(new StatusTokenTuple(newStatus, production.head()));
-                        break;
-                    case Accept:
+                    }
+                    case Accept -> {
                         System.out.println("Accept!");
                         callWhenInAccept(stack.peek().state);
                         return;
-                    case Error:
+                    }
+                    case Error -> {
                         System.out.println("Error parsing!");
                         return;
-                    default:
-                        break;
+                    }
                 }
             }
         }
