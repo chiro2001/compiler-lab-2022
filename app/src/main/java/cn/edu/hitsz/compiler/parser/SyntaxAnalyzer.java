@@ -109,27 +109,28 @@ public class SyntaxAnalyzer {
         // 初始状态为 (Status 0, eof)
         stack.add(new StatusTokenTuple(lrTable.getInit(), TokenKind.eof()));
         while (tokens.hasNext()) {
-            var token = tokens.next();
+            final var token = tokens.next();
             var stepToken = false;
             while (!stepToken) {
                 var action = lrTable.getAction(stack.peek().state, token);
                 // noinspection AlibabaSwitchStatement
                 switch (action.getKind()) {
                     case Shift -> {
-                        System.out.printf("Shift to state %s\n", action.getStatus());
-                        callWhenInShift(action.getStatus(), token);
-                        stack.add(new StatusTokenTuple(action.getStatus(), token.getKind()));
+                        final var shiftTo = action.getStatus();
+                        System.out.printf("Shift to state %s\n", shiftTo);
+                        callWhenInShift(shiftTo, token);
+                        stack.add(new StatusTokenTuple(shiftTo, token.getKind()));
                         stepToken = true;
                     }
                     case Reduce -> {
-                        var production = action.getProduction();
+                        final var production = action.getProduction();
                         System.out.printf("Reduce: %s\n", production);
                         for (int i = 0; i < production.body().size(); i++) {
                             stack.pop();
                         }
-                        var newStatus = lrTable.getGoto(stack.peek().state, production.head());
+                        final var gotoStatus = lrTable.getGoto(stack.peek().state, production.head());
                         callWhenInReduce(stack.peek().state, production);
-                        stack.add(new StatusTokenTuple(newStatus, production.head()));
+                        stack.add(new StatusTokenTuple(gotoStatus, production.head()));
                     }
                     case Accept -> {
                         System.out.println("Accept!");
