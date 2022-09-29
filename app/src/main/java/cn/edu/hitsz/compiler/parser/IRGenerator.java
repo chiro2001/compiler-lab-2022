@@ -20,20 +20,20 @@ public class IRGenerator implements ActionObserver {
     @Override
     public void whenShift(Status currentStatus, Token currentToken) {
         // TODO
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 
     @Override
     public void whenReduce(Status currentStatus, Production production) {
         // TODO
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 
 
     @Override
     public void whenAccept(Status currentStatus) {
         // TODO
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 
     @Override

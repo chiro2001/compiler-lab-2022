@@ -12,19 +12,19 @@ public class SemanticAnalyzer implements ActionObserver {
     @Override
     public void whenAccept(Status currentStatus) {
         // TODO: 该过程在遇到 Accept 时要采取的代码动作
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 
     @Override
     public void whenReduce(Status currentStatus, Production production) {
         // TODO: 该过程在遇到 reduce production 时要采取的代码动作
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 
     @Override
     public void whenShift(Status currentStatus, Token currentToken) {
         // TODO: 该过程在遇到 shift 时要采取的代码动作
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
     }
 
     @Override

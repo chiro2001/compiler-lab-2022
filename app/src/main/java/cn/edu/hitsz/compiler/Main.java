@@ -62,6 +62,7 @@ public class Main {
 
         // 执行语法解析并在解析过程中依次调用各 Observer
         parser.run();
+        System.out.println("Parser run done!");
 
         // 各 Observer 输出结果
         productionCollector.dumpToFile(FilePathConfig.PARSER_PATH);
