@@ -8,7 +8,7 @@ import cn.edu.hitsz.compiler.symtab.SymbolTable;
 
 // TODO: 实验三: 实现语义分析
 public class SemanticAnalyzer implements ActionObserver {
-
+    private SymbolTable symbolTable = null;
     @Override
     public void whenAccept(Status currentStatus) {
         // TODO: 该过程在遇到 Accept 时要采取的代码动作
@@ -31,7 +31,8 @@ public class SemanticAnalyzer implements ActionObserver {
     public void setSymbolTable(SymbolTable table) {
         // TODO: 设计你可能需要的符号表存储结构
         // 如果需要使用符号表的话, 可以将它或者它的一部分信息存起来, 比如使用一个成员变量存储
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
+        symbolTable = table;
     }
 }
 

@@ -1,14 +1,14 @@
 package cn.edu.hitsz.compiler.parser;
 
-import cn.edu.hitsz.compiler.NotImplementedException;
 import cn.edu.hitsz.compiler.lexer.Token;
-import cn.edu.hitsz.compiler.parser.table.LRTable;
-import cn.edu.hitsz.compiler.parser.table.Production;
-import cn.edu.hitsz.compiler.parser.table.Status;
+import cn.edu.hitsz.compiler.lexer.TokenKind;
+import cn.edu.hitsz.compiler.parser.table.*;
 import cn.edu.hitsz.compiler.symtab.SymbolTable;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 //TODO: 实验二: 实现 LR 语法分析驱动程序
 
@@ -23,7 +23,7 @@ import java.util.List;
 public class SyntaxAnalyzer {
     private final SymbolTable symbolTable;
     private final List<ActionObserver> observers = new ArrayList<>();
-    private Iterable<Token> tokens = null;
+    private Iterator<Token> tokens = null;
     private LRTable lrTable = null;
 
     public SyntaxAnalyzer(SymbolTable symbolTable) {
@@ -75,7 +75,7 @@ public class SyntaxAnalyzer {
         }
     }
 
-    public void loadTokens(Iterable<Token> tokens) {
+    public void loadTokens(Iterator<Token> tokens) {
         // TODO: 加载词法单元
         // 你可以自行选择要如何存储词法单元, 譬如使用迭代器, 或是栈, 或是干脆使用一个 list 全存起来
         // 需要注意的是, 在实现驱动程序的过程中, 你会需要面对只读取一个 token 而不能消耗它的情况,
@@ -96,6 +96,47 @@ public class SyntaxAnalyzer {
         // 你需要根据上面的输入来实现 LR 语法分析的驱动程序
         // 请分别在遇到 Shift, Reduce, Accept 的时候调用上面的 callWhenInShift, callWhenInReduce, callWhenInAccept
         // 否则用于为实验二打分的产生式输出可能不会正常工作
-        
+        class StatusTokenTuple {
+            public final Status state;
+            public final Term term;
+
+            public StatusTokenTuple(Status state, Term term) {
+                this.state = state;
+                this.term = term;
+            }
+        }
+        Stack<StatusTokenTuple> stack = new Stack<>();
+        // 初始状态为 (Status 0, eof)
+        stack.add(new StatusTokenTuple(lrTable.getInit(), TokenKind.eof()));
+        while (tokens.hasNext()) {
+            var token = tokens.next();
+            var stepToken = false;
+            while (!stepToken) {
+                var action = lrTable.getAction(stack.peek().state, token);
+                switch (action.getKind()) {
+                    case Error:
+                        System.out.println("Error parsing!");
+                        return;
+                    case Shift:
+                        System.out.printf("Shift to state %s\n", action.getStatus());
+                        stack.add(new StatusTokenTuple(action.getStatus(), token.getKind()));
+                        stepToken = true;
+                        break;
+                    case Reduce:
+                        var production =  action.getProduction();
+                        for (int i = 0; i < production.body().size(); i++) {
+                            stack.pop();
+                        }
+                        System.out.printf("Reduce: %s\n", production);
+                        stack.add(new StatusTokenTuple(lrTable.getGoto(stack.peek().state, production.head()), production.head()));
+                        break;
+                    case Accept:
+                        System.out.println("Accept!");
+                        return;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 }

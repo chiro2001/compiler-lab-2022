@@ -5,10 +5,7 @@ import cn.edu.hitsz.compiler.symtab.SymbolTable;
 import cn.edu.hitsz.compiler.utils.FileUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 /**
@@ -165,19 +162,17 @@ public class LexicalAnalyzer {
      *
      * @return Token 列表
      */
-    public Iterable<Token> getTokens() {
+    public Iterator<Token> getTokens() {
         // 从词法分析过程中获取 Token 列表
         // 词法分析过程可以使用 Stream 或 Iterator 实现按需分析
         // 亦可以直接分析完整个文件
         // 总之实现过程能转化为一列表即可
         // throw new NotImplementedException();
-        return tokens;
+        return tokens.iterator();
     }
 
     public void dumpTokens(String path) {
-        FileUtils.writeLines(
-                path,
-                StreamSupport.stream(getTokens().spliterator(), false).map(Token::toString).toList());
+        FileUtils.writeLines(path, tokens.stream().map(Token::toString).toList());
     }
 
 }

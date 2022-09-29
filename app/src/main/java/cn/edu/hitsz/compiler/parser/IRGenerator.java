@@ -16,7 +16,7 @@ import java.util.List;
  *
  */
 public class IRGenerator implements ActionObserver {
-
+    private SymbolTable symbolTable = null;
     @Override
     public void whenShift(Status currentStatus, Token currentToken) {
         // TODO
@@ -39,7 +39,8 @@ public class IRGenerator implements ActionObserver {
     @Override
     public void setSymbolTable(SymbolTable table) {
         // TODO
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
+        symbolTable = table;
     }
 
     public List<Instruction> getIR() {
