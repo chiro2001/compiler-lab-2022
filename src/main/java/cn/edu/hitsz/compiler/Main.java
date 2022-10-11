@@ -83,7 +83,6 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            System.out.println("pwd: " + System.getProperty("user.dir"));
             run(args);
         } catch (NotImplementedException e) {
             e.printStackTrace();
