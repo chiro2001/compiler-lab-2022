@@ -5,6 +5,9 @@ RAR_NAME := $(ID)-$(NAME)-实验$(LAB).rar
 ZIP_NAME := submit.zip
 PDF_NAME := $(ID)-$(NAME)-编译原理实验报告.pdf
 
+simple: clean
+	zip -r $(ZIP_NAME) .
+
 all: clean
 	$(MAKE) rar
 	cp docs/lab$(LAB)/*.pdf .
