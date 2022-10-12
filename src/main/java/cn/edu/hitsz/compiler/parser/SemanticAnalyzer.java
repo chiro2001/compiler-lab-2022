@@ -1,14 +1,21 @@
 package cn.edu.hitsz.compiler.parser;
 
 import cn.edu.hitsz.compiler.NotImplementedException;
+import cn.edu.hitsz.compiler.error.ErrorDescription;
 import cn.edu.hitsz.compiler.lexer.Token;
 import cn.edu.hitsz.compiler.parser.table.Production;
 import cn.edu.hitsz.compiler.parser.table.Status;
+import cn.edu.hitsz.compiler.symtab.SourceCodeType;
 import cn.edu.hitsz.compiler.symtab.SymbolTable;
+
+import java.util.Stack;
 
 // TODO: 实验三: 实现语义分析
 public class SemanticAnalyzer implements ActionObserver {
     private SymbolTable symbolTable = null;
+    private Stack<SourceCodeType> semanticTypeStack = new Stack<>();
+    private Stack<Token> shiftStack = new Stack<>();
+
     @Override
     public void whenAccept(Status currentStatus) {
         // TODO: 该过程在遇到 Accept 时要采取的代码动作
@@ -19,12 +26,35 @@ public class SemanticAnalyzer implements ActionObserver {
     public void whenReduce(Status currentStatus, Production production) {
         // TODO: 该过程在遇到 reduce production 时要采取的代码动作
         // throw new NotImplementedException();
+        // noinspection AlibabaSwitchStatement
+        switch (production.index()) {
+            case 5 -> {
+                // D -> int
+                semanticTypeStack.add(SourceCodeType.Int);
+            }
+            case 4 -> {
+                // S -> D id
+                var id = shiftStack.pop();
+                if (symbolTable.has(id.getText())) {
+                    var p = symbolTable.get(id.getText());
+                    p.setType(semanticTypeStack.pop());
+                } else {
+                    throw new RuntimeException(String.format(ErrorDescription.NO_SYMBOL, id.getText()));
+                }
+            }
+            case 6 -> {
+                // S -> id = E
+            }
+            default -> {
+            }
+        }
     }
 
     @Override
     public void whenShift(Status currentStatus, Token currentToken) {
         // TODO: 该过程在遇到 shift 时要采取的代码动作
         // throw new NotImplementedException();
+        shiftStack.add(currentToken);
     }
 
     @Override
