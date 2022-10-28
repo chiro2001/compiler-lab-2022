@@ -133,8 +133,16 @@ public class IRGenerator implements ActionObserver {
                 assert(Objects.equals(mul.getToken().getText(), "*"));
                 var a = shiftStack.pop();
                 var result = IRVariable.temp();
-                var insn = Instruction.createMul(result, a.getAddr(), b.getAddr());
-                code.add(insn);
+                if (b.addr.isImmediate()) {
+                    // there is no muli, so create template variable to hold imm value
+                    var temp = IRVariable.temp();
+                    code.add(Instruction.createMov(temp, b.getAddr()));
+                    var insn = Instruction.createMul(result, a.getAddr(), temp);
+                    code.add(insn);
+                } else {
+                    var insn = Instruction.createMul(result, a.getAddr(), b.getAddr());
+                    code.add(insn);
+                }
                 shiftStack.push(a.setAddr(result));
             }
             // A -> B; | E -> A;

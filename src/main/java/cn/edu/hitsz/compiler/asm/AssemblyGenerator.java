@@ -1,9 +1,11 @@
 package cn.edu.hitsz.compiler.asm;
 
-import cn.edu.hitsz.compiler.NotImplementedException;
-import cn.edu.hitsz.compiler.ir.Instruction;
+import cn.edu.hitsz.compiler.error.ErrorDescription;
+import cn.edu.hitsz.compiler.ir.*;
+import cn.edu.hitsz.compiler.utils.FileUtils;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -21,6 +23,64 @@ import java.util.List;
  * @see AssemblyGenerator#run() 代码生成与寄存器分配
  */
 public class AssemblyGenerator {
+    private List<Instruction> ir = null;
+    private List<String> assemblyCode = new LinkedList<>();
+    private List<IRValue> regMap = new ArrayList<>();
+    private Map<IRVariable, Integer> variableMap = new HashMap<>();
+    private Map<InstructionKind, String> asmTemplates = Map.of(
+            InstructionKind.MOV, "mv %rd, %rs1",
+            InstructionKind.MUL, "mul %rd, %rs1, %rs2",
+            InstructionKind.ADD, "add %rd, %rs1, %rs2",
+            InstructionKind.SUB, "sub %rd, %rs1, %rs2",
+            InstructionKind.ADDI, "addi %rd, %rs1, %imm",
+            InstructionKind.SUBI, "sub %rd, %rs1, %imm"
+    );
+    // See: https://en.wikichip.org/wiki/risc-v/registers
+    static public List<String> regNames = List.of(
+            "zero", "ra", "sp", "gp", "tp",
+            "t0", "t1", "t2", "s0", "s1",
+            "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
+            "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
+            "t3", "t4", "t5", "t6");
+    static private IRVariable regRet = IRVariable.named("a0");
+    static private IRVariable regZero = IRVariable.named("zero");
+
+    private String applyInstructionToAsm(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm) {
+        var asm = asmTemplates.get(kind);
+        // TODO: split too big imm
+        if (imm != null) {
+            asm = asm.replaceAll("%imm", "" + imm.getValue());
+        }
+        if (rd != null) {
+            asm = asm.replaceAll("%rd", regNames.get(variableMap.get(rd)));
+        }
+        if (rs1 != null) {
+            if (rs1 instanceof IRVariable r) {
+                asm = asm.replaceAll("%rs1", regNames.get(variableMap.get(r)));
+            } else {
+                throw new RuntimeException();
+            }
+        }
+        if (rs2 != null) {
+            if (rs2 instanceof IRVariable r) {
+                asm = asm.replaceAll("%rs2", regNames.get(variableMap.get(r)));
+            } else {
+                throw new RuntimeException();
+            }
+        }
+        return asm;
+    }
+    
+    private void apply(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm) {
+        assemblyCode.add(applyInstructionToAsm(kind, rd, rs1, rs2, imm));
+    }
+
+    private void assignVariable(int index, IRVariable variable) {
+        assert(regMap.get(index) == null);
+        regMap.set(index, variable);
+        assert(!variableMap.containsKey(variable) && !variableMap.containsValue(index));
+        variableMap.put(variable, index);
+    }
 
     /**
      * 加载前端提供的中间代码
@@ -32,7 +92,13 @@ public class AssemblyGenerator {
      */
     public void loadIR(List<Instruction> originInstructions) {
         // TODO: 读入前端提供的中间代码并生成所需要的信息
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
+        for (int i = 0; i < 32; i++) {
+            regMap.add(null);
+        }
+        assignVariable(regNames.indexOf(regRet.getName()), regRet);
+        assignVariable(regNames.indexOf(regZero.getName()), regZero);
+        ir = originInstructions;
     }
 
 
@@ -47,7 +113,33 @@ public class AssemblyGenerator {
      */
     public void run() {
         // TODO: 执行寄存器分配与代码生成
-        throw new NotImplementedException();
+        // throw new NotImplementedException();
+        for (var insn : ir) {
+            switch (insn.getKind()) {
+                case MOV -> {
+                    if (insn.getFrom().isImmediate()) {
+                        apply(InstructionKind.ADDI, insn.getResult(), null, null, (IRImmediate) insn.getFrom());
+                    }
+                    apply(insn.getKind(), insn.getResult(), insn.getFrom(), null, null);
+                }
+                case ADD, SUB, MUL -> {
+                    if (insn.getRHS() instanceof IRImmediate imm) {
+                        var immKind = Map.of(
+                                InstructionKind.ADD, InstructionKind.ADDI,
+                                InstructionKind.SUB, InstructionKind.SUBI);
+                        apply(immKind.get(insn.getKind()), insn.getResult(), insn.getLHS(), null, imm);
+                    } else {
+                        apply(insn.getKind(), insn.getResult(), insn.getLHS(), insn.getRHS(), null);
+                    }
+                }
+                case RET -> {
+                    apply(InstructionKind.MOV, regRet, insn.getReturnValue(), null, null);
+                }
+                default -> {
+                    throw new RuntimeException(ErrorDescription.NO_INSTR.formatted(insn));
+                }
+            }
+        }
     }
 
 
@@ -57,8 +149,7 @@ public class AssemblyGenerator {
      * @param path 输出文件路径
      */
     public void dump(String path) {
-        // TODO: 输出汇编代码到文件
-        throw new NotImplementedException();
+        FileUtils.writeFile(path, String.join("", assemblyCode));
     }
 }
 
