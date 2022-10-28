@@ -1,6 +1,7 @@
 package cn.edu.hitsz.compiler.parser;
 
 import cn.edu.hitsz.compiler.NotImplementedException;
+import cn.edu.hitsz.compiler.RunConfigs;
 import cn.edu.hitsz.compiler.error.ErrorDescription;
 import cn.edu.hitsz.compiler.ir.Instruction;
 import cn.edu.hitsz.compiler.lexer.Token;
@@ -31,18 +32,22 @@ public class SemanticAnalyzer implements ActionObserver {
         // throw new NotImplementedException();
         // noinspection AlibabaSwitchStatement
         switch (production.index()) {
-            case 4 -> { // S -> D id
+            // S -> D id
+            case 4 -> {
                 var id = shiftStack.pop();
                 if (symbolTable.has(id.getText())) {
                     var p = symbolTable.get(id.getText());
                     p.setType(semanticTypeStack.pop());
                     semanticTypeStack.add(SourceCodeType.None);
-                    System.out.printf("Set %s as type %s\n", p.getText(), p.getType());
+                    if (RunConfigs.DEBUG) {
+                        System.out.printf("Set %s as type %s\n", p.getText(), p.getType());
+                    }
                 } else {
                     throw new RuntimeException(String.format(ErrorDescription.NO_SYMBOL, id.getText()));
                 }
             }
-            case 5 -> { // D -> int
+            // D -> int
+            case 5 -> {
                 semanticTypeStack.add(SourceCodeType.Int);
             }
             default -> {

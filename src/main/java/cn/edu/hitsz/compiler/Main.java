@@ -13,7 +13,6 @@ import cn.edu.hitsz.compiler.symtab.SymbolTable;
 import cn.edu.hitsz.compiler.utils.FilePathConfig;
 import cn.edu.hitsz.compiler.utils.FileUtils;
 import cn.edu.hitsz.compiler.utils.IREmulator;
-import cn.edu.hitsz.compiler.utils.RunConfigs;
 
 import java.util.Objects;
 
@@ -63,7 +62,9 @@ public class Main {
 
         // 执行语法解析并在解析过程中依次调用各 Observer
         parser.run();
-        System.out.println("Parser run done!");
+        if (RunConfigs.DEBUG) {
+            System.out.println("Parser run done!");
+        }
 
         // 各 Observer 输出结果
         productionCollector.dumpToFile(FilePathConfig.PARSER_PATH);

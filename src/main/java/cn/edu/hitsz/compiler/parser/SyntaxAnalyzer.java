@@ -1,5 +1,6 @@
 package cn.edu.hitsz.compiler.parser;
 
+import cn.edu.hitsz.compiler.RunConfigs;
 import cn.edu.hitsz.compiler.lexer.Token;
 import cn.edu.hitsz.compiler.lexer.TokenKind;
 import cn.edu.hitsz.compiler.parser.table.*;
@@ -117,14 +118,18 @@ public class SyntaxAnalyzer {
                 switch (action.getKind()) {
                     case Shift -> {
                         final var shiftTo = action.getStatus();
-                        System.out.printf("Shift to state %s\n", shiftTo);
+                        if (RunConfigs.DEBUG) {
+                            System.out.printf("Shift to state %s\n", shiftTo);
+                        }
                         callWhenInShift(shiftTo, token);
                         stack.add(new StatusTokenTuple(shiftTo, token.getKind()));
                         stepToken = true;
                     }
                     case Reduce -> {
                         final var production = action.getProduction();
-                        System.out.printf("Reduce: %s\n", production);
+                        if (RunConfigs.DEBUG) {
+                            System.out.printf("Reduce: %s\n", production);
+                        }
                         for (int i = 0; i < production.body().size(); i++) {
                             stack.pop();
                         }
@@ -133,12 +138,16 @@ public class SyntaxAnalyzer {
                         stack.add(new StatusTokenTuple(gotoStatus, production.head()));
                     }
                     case Accept -> {
-                        System.out.println("Accept!");
+                        if (RunConfigs.DEBUG) {
+                            System.out.println("Accept!");
+                        }
                         callWhenInAccept(stack.peek().state);
                         return;
                     }
                     case Error -> {
-                        System.out.println("Error parsing!");
+                        if (RunConfigs.DEBUG) {
+                            System.out.println("Error parsing!");
+                        }
                         return;
                     }
                 }
