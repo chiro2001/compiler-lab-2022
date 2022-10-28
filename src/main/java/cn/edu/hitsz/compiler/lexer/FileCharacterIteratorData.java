@@ -27,10 +27,12 @@ public class FileCharacterIteratorData {
                 }
             }
             if (line == null) {
-                line = reader.readLine();
-                if (line == null) {
-                    return DONE;
-                }
+                do {
+                    line = reader.readLine();
+                    if (line == null) {
+                        return DONE;
+                    }
+                } while (line.isEmpty());
             }
             iterator = new StringCharacterIterator(line);
             return iterator.current();
