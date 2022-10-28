@@ -20,14 +20,14 @@ import java.util.Objects;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-// TODO: 实验三: 实现 IR 生成
+// 实验三: 实现 IR 生成
 
 /**
  *
  */
 public class IRGenerator implements ActionObserver {
-    public class TokenWithInfo {
-        private Token token;
+    public static class TokenWithInfo {
+        private final Token token;
         private IRValue addr = null;
 
         public TokenWithInfo(Token token) {

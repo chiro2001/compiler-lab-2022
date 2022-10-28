@@ -1,5 +1,6 @@
 package cn.edu.hitsz.compiler.lexer;
 
+import cn.edu.hitsz.compiler.RunConfigs;
 import cn.edu.hitsz.compiler.error.ErrorDescription;
 import cn.edu.hitsz.compiler.symtab.SymbolTable;
 import cn.edu.hitsz.compiler.utils.FileUtils;
@@ -9,7 +10,7 @@ import java.util.*;
 import java.util.stream.StreamSupport;
 
 /**
- * TODO: 实验一: 实现词法分析
+ * 实验一: 实现词法分析
  * <br>
  * 你可能需要参考的框架代码如下:
  *
@@ -36,7 +37,7 @@ public class LexicalAnalyzer {
         // 可自由实现各类缓冲区
         // 或直接采用完整读入方法
         try {
-            iterator = FileCharacterIterator.build(path, 2);
+            iterator = FileCharacterIterator.build(path, RunConfigs.FILE_READER_BUFFER_SIZE);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -58,9 +59,11 @@ public class LexicalAnalyzer {
         while (iterator.hasNext()) {
             while (!accepts.contains(state) && iterator.hasNext()) {
                 final var c = iterator.current();
-                // System.out.printf("[%2d] read: %s, buffer: %s\n", state, c == '\n' ? "\\n" : c,
-                //         iterator.getBuffer().stream().map(a -> a == '\n' ? ' ' : a).map(Object::toString)
-                //                 .reduce((a, b) -> a + b).orElseThrow());
+                if (RunConfigs.DEBUG) {
+                    System.out.printf("[%2d] read: %s, buffer: %s\n", state, c == '\n' ? "\\n" : c,
+                            iterator.getBuffer().stream().map(a -> a == '\n' ? ' ' : a).map(Object::toString)
+                                    .reduce((a, b) -> a + b).orElseThrow());
+                }
                 boolean blank = c == ' ' || c == '\t' || c == '\n';
                 boolean digital = '0' <= c && c <= '9';
                 boolean letter = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
