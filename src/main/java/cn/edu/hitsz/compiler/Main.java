@@ -13,6 +13,7 @@ import cn.edu.hitsz.compiler.symtab.SymbolTable;
 import cn.edu.hitsz.compiler.utils.FilePathConfig;
 import cn.edu.hitsz.compiler.utils.FileUtils;
 import cn.edu.hitsz.compiler.utils.IREmulator;
+import cn.edu.hitsz.compiler.utils.RunConfigs;
 
 import java.util.Objects;
 
@@ -82,11 +83,17 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        try {
+        if (RunConfigs.RUN_MAIN_WITH_CATCH) {
+            try {
+                run(args);
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (RunConfigs.RUN_MAIN_CATCH_THROW) {
+                    throw e;
+                }
+            }
+        } else {
             run(args);
-        } catch (NotImplementedException e) {
-            e.printStackTrace();
-            System.out.println("Warning: Something not implemented");
         }
     }
 }

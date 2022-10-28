@@ -4,9 +4,10 @@ package cn.edu.hitsz.compiler.ir;
  * IR 的种类
  */
 public enum InstructionKind {
-    ADD, SUB, MUL, MOV, RET,
+    // used in IR generator
+    ADD, SUB, MUL, MOV, RET, SAVE, LOAD,
     // used only in ASM generator
-    ADDI, SUBI;
+    ADDI, SW, LW, LI;
 
     /**
      * @return IR 是否是二元的 (有返回值, 有两个参数)

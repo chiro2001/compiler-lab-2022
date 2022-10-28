@@ -114,4 +114,8 @@ public class Instruction {
                 "Illegal operand access, except %s, but given %s".formatted(acceptKindsString, kind));
         }
     }
+
+    public List<IRValue> getOperators() {
+        return operands;
+    }
 }

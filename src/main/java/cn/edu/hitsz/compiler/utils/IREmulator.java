@@ -21,6 +21,7 @@ public class IREmulator {
     public Optional<Integer> execute() {
         for (final var instruction : instructions) {
             switch (instruction.getKind()) {
+                // TODO: add more instructions
                 case MOV -> {
                     final var from = eval(instruction.getFrom());
                     environment.put(instruction.getResult(), from);

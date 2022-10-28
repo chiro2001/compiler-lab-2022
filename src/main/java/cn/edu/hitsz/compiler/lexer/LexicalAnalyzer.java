@@ -149,7 +149,7 @@ public class LexicalAnalyzer {
                 }
                 iterator.next();
                 state = nextState;
-                assert state > 0;
+                // assert state > 0;
             }
             state = 0;
         }

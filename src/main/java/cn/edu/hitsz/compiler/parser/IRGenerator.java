@@ -91,7 +91,7 @@ public class IRGenerator implements ActionObserver {
             case 6 -> {
                 var e = shiftStack.pop();
                 var eq = shiftStack.pop();
-                assert(Objects.equals(eq.getToken().getText(), "="));
+                assert(Objects.equals(eq.getToken().getKind().getTermName(), "="));
                 var id = shiftStack.pop();
                 if (!symbolTable.has(id.getToken().getText())) {
                     throw new RuntimeException(ErrorDescription.NO_SYMBOL.formatted(id.getToken().getText()));
@@ -108,7 +108,7 @@ public class IRGenerator implements ActionObserver {
             case 8 -> {
                 var a = shiftStack.pop();
                 var plus = shiftStack.pop();
-                assert(Objects.equals(plus.getToken().getText(), "+"));
+                assert(Objects.equals(plus.getToken().getKind().getTermName(), "+"));
                 var e = shiftStack.pop();
                 var result = IRVariable.temp();
                 var insn = Instruction.createAdd(result, a.getAddr(), e.getAddr());
@@ -119,7 +119,7 @@ public class IRGenerator implements ActionObserver {
             case 9 -> {
                 var a = shiftStack.pop();
                 var minus = shiftStack.pop();
-                assert(Objects.equals(minus.getToken().getText(), "-"));
+                assert(Objects.equals(minus.getToken().getKind().getTermName(), "-"));
                 var e = shiftStack.pop();
                 var result = IRVariable.temp();
                 var insn = Instruction.createSub(result, e.getAddr(), a.getAddr());
@@ -130,7 +130,7 @@ public class IRGenerator implements ActionObserver {
             case 11 -> {
                 var b = shiftStack.pop();
                 var mul = shiftStack.pop();
-                assert(Objects.equals(mul.getToken().getText(), "*"));
+                assert(Objects.equals(mul.getToken().getKind().getTermName(), "*"));
                 var a = shiftStack.pop();
                 var result = IRVariable.temp();
                 if (b.addr.isImmediate()) {
@@ -153,10 +153,10 @@ public class IRGenerator implements ActionObserver {
             // B -> ( E );
             case 13 -> {
                 var right = shiftStack.pop();
-                assert(Objects.equals(right.getToken().getText(), ")"));
+                assert(Objects.equals(right.getToken().getKind().getTermName(), ")"));
                 var e = shiftStack.pop();
                 var left = shiftStack.pop();
-                assert(Objects.equals(left.getToken().getText(), "("));
+                assert(Objects.equals(left.getToken().getKind().getTermName(), "("));
                 shiftStack.push(e.setAddr(e.getAddr()));
             }
             // B -> id;
@@ -199,9 +199,6 @@ public class IRGenerator implements ActionObserver {
     }
 
     public List<Instruction> getIR() {
-        for (var c : code) {
-            System.out.println(c);
-        }
         return code;
     }
 
