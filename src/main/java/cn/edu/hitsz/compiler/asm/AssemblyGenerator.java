@@ -50,7 +50,14 @@ public class AssemblyGenerator {
             .filter(name -> !notArrangeableRegs.contains(name)).collect(Collectors.toList());
     static private final IRVariable regRet = IRVariable.named("a0");
     static private final IRVariable regZero = IRVariable.named("zero");
+
+    /**
+     * Regs buffer base address
+     */
     static private final IRVariable regSp = IRVariable.named("sp");
+    /**
+     * This reg is used to index regs buffer
+     */
     static private final IRVariable regT6 = IRVariable.named("t6");
 
     // should not touch sp reg in TXT programs, or the arranges will fail!
@@ -120,13 +127,10 @@ public class AssemblyGenerator {
             variableBuffer.setValid(r);
         }
         // TODO: setup variable sizes
-        apply(InstructionKind.ADDI, regSp, regSp, null, IRImmediate.of(4));
         // sp is tail of stack
     }
 
     private void loadVariableFromStack(IRVariable r) {
-        apply(InstructionKind.ADDI, regT6, regZero, null, IRImmediate.of(4));
-        apply(InstructionKind.SUB, regSp, regSp, regT6, null);
         int offset = variableBuffer.indexOf(r);
         assert offset >= 0;
         applyLoad(InstructionKind.LW, r, regSp, offset);
@@ -317,6 +321,8 @@ public class AssemblyGenerator {
         if (RunConfigs.DEBUG) {
             System.out.println("Load IR Done.");
         }
+        // Setup regs buffer base address
+        apply(InstructionKind.ADDI, regSp, regZero, null, IRImmediate.of(RunConfigs.REGS_BUFFER_BASE));
     }
 
 

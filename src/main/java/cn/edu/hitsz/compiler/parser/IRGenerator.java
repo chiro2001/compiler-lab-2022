@@ -53,30 +53,16 @@ public class IRGenerator implements ActionObserver {
         }
     }
 
-    class TokenShiftStack extends Stack<TokenWithInfo> {
+    static class TokenShiftStack extends Stack<TokenWithInfo> {
         @Override
         public synchronized String toString() {
             return this.stream().filter(i -> !Objects.equals(i.getToken().getKindId(), "Semicolon")).map(TokenWithInfo::toString).collect(Collectors.joining(", "));
         }
-
-        @Override
-        public synchronized TokenWithInfo pop() {
-            var r = super.pop();
-            // System.out.printf("pop:\t%s\n", this);
-            return r;
-        }
-
-        @Override
-        public TokenWithInfo push(TokenWithInfo item) {
-            var r = super.push(item);
-            // System.out.printf("push:\t%s\n", this);
-            return r;
-        }
     }
 
     private SymbolTable symbolTable = null;
-    private TokenShiftStack shiftStack = new TokenShiftStack();
-    private List<Instruction> code = new LinkedList<>();
+    private final TokenShiftStack shiftStack = new TokenShiftStack();
+    private final List<Instruction> code = new LinkedList<>();
 
     @Override
     public void whenShift(Status currentStatus, Token currentToken) {

@@ -31,6 +31,12 @@ rar: rar-clean
 pdf-clean:
 	rm -rf *.pdf
 
+rars.jar:
+	curl https://foruda.gitee.com/attach_file/1662968474799709016/rars.jar?token=e0daded732fbbbd056ad5849a579dffa&ts=1666973056&attname=rars.jar -O rars.jar
+
+rars:
+	java -jar rars.jar mc CompactDataAtZero a0 nc dec ae255 data/out/assembly_language.asm
+
 clean: zip-clean rar-clean pdf-clean
 
 .PHONY: rar rar-clean clean pdf-clean zip zip-clean all
