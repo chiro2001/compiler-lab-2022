@@ -31,8 +31,7 @@ public class SemanticAnalyzer implements ActionObserver {
         // throw new NotImplementedException();
         // noinspection AlibabaSwitchStatement
         switch (production.index()) {
-            case 4 -> {
-                // S -> D id
+            case 4 -> { // S -> D id
                 var id = shiftStack.pop();
                 if (symbolTable.has(id.getText())) {
                     var p = symbolTable.get(id.getText());
@@ -43,8 +42,7 @@ public class SemanticAnalyzer implements ActionObserver {
                     throw new RuntimeException(String.format(ErrorDescription.NO_SYMBOL, id.getText()));
                 }
             }
-            case 5 -> {
-                // D -> int
+            case 5 -> { // D -> int
                 semanticTypeStack.add(SourceCodeType.Int);
             }
             default -> {
