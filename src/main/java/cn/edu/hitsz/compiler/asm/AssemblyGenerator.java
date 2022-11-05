@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
  * @see AssemblyGenerator#run() 代码生成与寄存器分配
  */
 public class AssemblyGenerator {
-    private List<Instruction> ir = null;
-    private final List<String> assemblyCode = new LinkedList<>();
-    private final List<IRVariable> regMap = new ArrayList<>();
-    private final Map<IRValue, Integer> variableMap = new HashMap<>();
-    private final Map<InstructionKind, String> asmTemplates = Map.of(
+    protected List<Instruction> ir = null;
+    protected final List<String> assemblyCode = new LinkedList<>();
+    protected final List<IRVariable> regMap = new ArrayList<>();
+    protected final Map<IRValue, Integer> variableMap = new HashMap<>();
+    protected final Map<InstructionKind, String> asmTemplates = Map.of(
             InstructionKind.MOV, "mv %rd, %rs1",
             InstructionKind.MUL, "mul %rd, %rs1, %rs2",
             InstructionKind.ADD, "add %rd, %rs1, %rs2",
@@ -48,31 +48,45 @@ public class AssemblyGenerator {
             "zero", "a0", "sp", "gp", "tp", "t6");
     static public List<String> arrangeableRegs = regNames.stream()
             .filter(name -> !notArrangeableRegs.contains(name)).collect(Collectors.toList());
-    static private final IRVariable regRet = IRVariable.named("a0");
-    static private final IRVariable regZero = IRVariable.named("zero");
+    static protected final IRVariable regRet = IRVariable.named("a0");
+    static protected final IRVariable regZero = IRVariable.named("zero");
 
     /**
      * Regs buffer base address
      */
-    static private final IRVariable regSp = IRVariable.named("sp");
+    static protected final IRVariable regSp = IRVariable.named("sp");
     /**
      * This reg is used to index regs buffer
      */
-    static private final IRVariable regT6 = IRVariable.named("t6");
+    static protected final IRVariable regT6 = IRVariable.named("t6");
 
     // should not touch sp reg in TXT programs, or the arranges will fail!
-    record VariableInBuffer(IRVariable r, boolean valid) {
+    public record VariableInBuffer(IRVariable r, boolean valid) {
     }
 
     static class VariableBuffer extends ArrayList<VariableInBuffer> {
-        boolean has(IRVariable r) {
+        @Override
+        public boolean add(VariableInBuffer variableInBuffer) {
+            if (has(variableInBuffer.r)) {
+                if (variableInBuffer.valid) {
+                    setValid(variableInBuffer.r);
+                } else {
+                    setInvalid(variableInBuffer.r);
+                }
+                return true;
+            } else {
+                return super.add(variableInBuffer);
+            }
+        }
+
+        public boolean has(IRVariable r) {
             if (isEmpty()) {
                 return false;
             }
-            return this.stream().map(i -> i.r == r).reduce((a, b) -> a | b).get();
+            return this.stream().map(i -> i.r == r).reduce((a, b) -> a || b).get();
         }
 
-        boolean hasValid(IRVariable r) {
+        public boolean hasValid(IRVariable r) {
             if (!has(r)) {
                 return false;
             }
@@ -86,7 +100,7 @@ public class AssemblyGenerator {
                     .orElse(false);
         }
 
-        int indexOf(IRVariable r) {
+        public int indexOf(IRVariable r) {
             for (int i = 0; i < size(); i++) {
                 if (get(i).r == r) {
                     return i;
@@ -95,7 +109,7 @@ public class AssemblyGenerator {
             return -1;
         }
 
-        void setValid(IRVariable r) {
+        public void setValid(IRVariable r) {
             for (int i = 0; i < size(); i++) {
                 if (get(i).r == r) {
                     set(i, new VariableInBuffer(get(i).r, true));
@@ -103,40 +117,60 @@ public class AssemblyGenerator {
             }
         }
 
-        void setInvalid(IRVariable r) {
+        public void setInvalid(IRVariable r) {
             for (int i = 0; i < size(); i++) {
                 if (get(i).r == r) {
                     set(i, new VariableInBuffer(get(i).r, false));
                 }
             }
         }
+
+        public List<IRVariable> listInRegs() {
+            return this.stream().filter(i -> i.valid).map(i -> i.r).collect(Collectors.toList());
+        }
+        public List<IRVariable> listInMems() {
+            return this.stream().filter(i -> !i.valid).map(i -> i.r).collect(Collectors.toList());
+        }
+    }
+
+    protected void displayDebug() {
+        System.out.println("/=== cut here ===\\");
+        var links = arrangeableRegs.stream().map(n -> "%s->%s".formatted(n, regMap.get(regNames.indexOf(n)))).collect(Collectors.toList());
+        System.out.printf("links(%d): %s\n", links.size(), String.join(", ", links));
+        System.out.printf("rlinks(%d): %s\n", variableMap.size(), variableMap);
+        var regs = variableBuffer.stream().filter(i -> i.valid).map(i -> i.r).collect(Collectors.toSet());
+        System.out.printf("in regs(%d): %s\n", regs.size(), regs);
+        var mems = variableBuffer.stream().filter(i -> !i.valid).map(i -> i.r).collect(Collectors.toSet());
+        System.out.printf("in mems(%d): %s\n", mems.size(), mems);
+        System.out.println("\\=== cut done ===/");
     }
 
     /**
      * mark a variable in reg+mem. valid=1 then in regs.
      */
-    final private VariableBuffer variableBuffer = new VariableBuffer();
+    final protected VariableBuffer variableBuffer = new VariableBuffer();
 
-    private void saveVariableToStack(IRVariable r) {
+    protected void saveVariableToStack(IRVariable r) {
         int offsetInBuf = variableBuffer.indexOf(r);
         int offset = offsetInBuf < 0 ? variableBuffer.size() : offsetInBuf;
         applySave(InstructionKind.SW, r, regSp, offset * 4);
         if (offsetInBuf < 0) {
             variableBuffer.add(new VariableInBuffer(r, true));
         } else {
-            variableBuffer.setValid(r);
+            variableBuffer.setInvalid(r);
         }
         // TODO: setup variable sizes
         // sp is tail of stack
     }
 
-    private void loadVariableFromStack(IRVariable r) {
+    protected void loadVariableFromStack(IRVariable r) {
         int offset = variableBuffer.indexOf(r);
         assert offset >= 0;
+        variableBuffer.setValid(r);
         applyLoad(InstructionKind.LW, r, regSp, offset);
     }
 
-    private void updateArrangeReg(IRVariable r) {
+    protected void updateArrangeReg(IRVariable r) {
         if (RunConfigs.DEBUG) {
             System.out.printf("updateArrangeReg(%s)\n", r);
         }
@@ -146,35 +180,50 @@ public class AssemblyGenerator {
                 System.out.printf("%s not in reg+mem\n", r);
             }
             // add new variable in regs+mem
-            if (variableMap.keySet().size() == arrangeableRegs.size()) {
+            if (variableBuffer.stream().filter(i -> i.valid).toList().size() >= arrangeableRegs.size()) {
                 if (RunConfigs.DEBUG) {
-                    System.out.println("regs used up, select one and push to sp stack");
+                    System.out.println("regs used up, select one and push to sp buffer");
                 }
                 // simply find first not saved reg
                 var foundIndex = 0;
                 for (var n : arrangeableRegs) {
                     var index = regNames.indexOf(n);
-                    if (variableBuffer.has(regMap.get(index))) {
+                    var rNext = regMap.get(index);
+                    // System.out.printf("regMap.get(%2d) = %s...", index, regMap.get(index));
+                    if (variableBuffer.hasValid(rNext)) {
+                        // System.out.println("in regs");
                         foundIndex = index;
                         break;
+                    } else {
+                        // if (variableBuffer.has(rNext)) {
+                        //     System.out.println("in mem not in regs");
+                        // } else {
+                        //     System.out.println("not in regs+mem");
+                        // }
                     }
+                }
+                if (foundIndex == 0) {
+                    throw new RuntimeException("cannot found free regs!");
                 }
                 if (RunConfigs.DEBUG) {
                     System.out.printf("will bind to reg %s, kick out %s to mem\n", regNames.get(foundIndex), regMap.get(foundIndex));
                 }
-                assert foundIndex > 0;
+                displayDebug();
                 var newReg = regMap.get(foundIndex);
                 saveVariableToStack(newReg);
-                apply(InstructionKind.MOV, newReg, r, null, null);
                 assignVariable(foundIndex, r);
+                applyIgnoreArrange(InstructionKind.MOV, newReg, r, null, null);
+                displayDebug();
+                System.out.printf("%s bind to %s done\n", r, regNames.get(foundIndex));
             } else {
                 if (RunConfigs.DEBUG) {
                     System.out.println("have free regs");
                 }
+                displayDebug();
                 var foundIndex = 0;
                 for (var n : arrangeableRegs) {
                     var index = regNames.indexOf(n);
-                    if (variableBuffer.has(regMap.get(index))) {
+                    if (variableBuffer.hasValid(regMap.get(index))) {
                         foundIndex = index;
                         break;
                     }
@@ -185,6 +234,7 @@ public class AssemblyGenerator {
                 assert foundIndex > 0;
                 variableBuffer.add(new VariableInBuffer(r, true));
                 assignVariable(foundIndex, r);
+                displayDebug();
             }
             // load variable from stack
         } else {
@@ -204,7 +254,7 @@ public class AssemblyGenerator {
         }
     }
 
-    private void updateArrangeRegs(IRValue... r) {
+    protected void updateArrangeRegs(IRValue... r) {
         Arrays.stream(r).toList().stream()
                 .filter(Objects::nonNull)
                 .filter(IRValue::isIRVariable)
@@ -213,11 +263,17 @@ public class AssemblyGenerator {
                 .forEach(this::updateArrangeReg);
     }
 
-    private String applyInstructionToAsm(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm) {
+    protected String applyInstructionToAsm(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm) {
+        return applyInstructionToAsm(kind, rd, rs1, rs2, imm, false);
+    }
+
+    protected String applyInstructionToAsm(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm, boolean ignoreArrange) {
         if (RunConfigs.DEBUG) {
             System.out.printf("applyInstructionToAsm(%s, rd=%s, rs1=%s, rs2=%s, imm=%s)\n", kind, rd, rs1, rs2, imm);
         }
-        updateArrangeRegs(rd, rs1, rs2);
+        if (!ignoreArrange) {
+            updateArrangeRegs(rd, rs1, rs2);
+        }
         var asm = asmTemplates.get(kind);
         // TODO: split too big imm
         if (imm != null) {
@@ -228,7 +284,11 @@ public class AssemblyGenerator {
         }
         if (rs1 != null) {
             if (rs1 instanceof IRVariable r) {
-                asm = asm.replaceAll("%rs1", regNames.get(variableMap.get(r)));
+                try {
+                    asm = asm.replaceAll("%rs1", regNames.get(variableMap.get(r)));
+                } catch (NullPointerException e) {
+                    throw e;
+                }
             } else {
                 throw new RuntimeException();
             }
@@ -243,11 +303,15 @@ public class AssemblyGenerator {
         return asm;
     }
 
-    private void apply(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm) {
+    protected void apply(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm) {
         assemblyCode.add(applyInstructionToAsm(kind, rd, rs1, rs2, imm));
     }
 
-    private void applyLoad(InstructionKind kind, IRValue rd, IRValue rs1, int offset) {
+    protected void applyIgnoreArrange(InstructionKind kind, IRVariable rd, IRValue rs1, IRValue rs2, IRImmediate imm) {
+        assemblyCode.add(applyInstructionToAsm(kind, rd, rs1, rs2, imm, true));
+    }
+
+    protected void applyLoad(InstructionKind kind, IRValue rd, IRValue rs1, int offset) {
         updateArrangeRegs(rd, rs1);
         assemblyCode.add(asmTemplates.get(kind)
                 .replaceAll("%rd", regNames.get(variableMap.get(rd)))
@@ -256,7 +320,7 @@ public class AssemblyGenerator {
         );
     }
 
-    private void applySave(InstructionKind kind, IRValue rs1, IRValue rs2, int offset) {
+    protected void applySave(InstructionKind kind, IRValue rs1, IRValue rs2, int offset) {
         updateArrangeRegs(rs1, rs2);
         assemblyCode.add(asmTemplates.get(kind)
                 .replaceAll("%rs1", regNames.get(variableMap.get(rs1)))
@@ -265,10 +329,8 @@ public class AssemblyGenerator {
         );
     }
 
-    private void assignVariable(int index, IRVariable variable) {
-        // assert regMap.get(index) == null;
+    protected void assignVariable(int index, IRVariable variable) {
         regMap.set(index, variable);
-        // assert !variableMap.containsKey(variable) && !variableMap.containsValue(index);
         variableMap.put(variable, index);
     }
 
@@ -295,7 +357,7 @@ public class AssemblyGenerator {
         assignVariable(regNames.indexOf(regSp.getName()), regSp);
         assignVariable(regNames.indexOf(regT6.getName()), regT6);
         // pre-arrange
-        List<IRVariable> variables = ir.stream().map(insn -> {
+        List<IRVariable> variables = new HashSet<>(ir.stream().map(insn -> {
             Set<IRVariable> vars = insn.getOperators().stream()
                     .filter(IRValue::isIRVariable)
                     .map(i -> (IRVariable) i)
@@ -307,12 +369,16 @@ public class AssemblyGenerator {
         }).reduce(new HashSet<>(), (a, b) -> {
             a.addAll(b);
             return a;
-        }).stream().toList();
-        for (int i = 0; i < Math.min(arrangeableRegs.size(), variables.size()); i++) {
+        })).stream().toList();
+        var initRegSize = Math.min(arrangeableRegs.size(), variables.size());
+        if (RunConfigs.DEBUG) {
+            System.out.println("initRegSize = " + initRegSize);
+        }
+        for (int i = 0; i < initRegSize; i++) {
             var r = variables.get(i);
             var reg = arrangeableRegs.get(i);
             if (RunConfigs.DEBUG) {
-                System.out.printf("bind %s to reg\t%s\n", r, reg);
+                System.out.printf("[%2d] bind %s\t to reg %s\n", i, r, reg);
             }
             assignVariable(regNames.indexOf(reg), r);
             variableBuffer.add(new VariableInBuffer(r, true));
