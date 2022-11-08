@@ -128,21 +128,24 @@ public class AssemblyGenerator {
         public List<IRVariable> listInRegs() {
             return this.stream().filter(i -> i.valid).map(i -> i.r).collect(Collectors.toList());
         }
+
         public List<IRVariable> listInMems() {
             return this.stream().filter(i -> !i.valid).map(i -> i.r).collect(Collectors.toList());
         }
     }
 
     protected void displayDebug() {
-        System.out.println("/=== cut here ===\\");
-        var links = arrangeableRegs.stream().map(n -> "%s->%s".formatted(n, regMap.get(regNames.indexOf(n)))).collect(Collectors.toList());
-        System.out.printf("links(%d): %s\n", links.size(), String.join(", ", links));
-        System.out.printf("rlinks(%d): %s\n", variableMap.size(), variableMap);
-        var regs = variableBuffer.stream().filter(i -> i.valid).map(i -> i.r).collect(Collectors.toSet());
-        System.out.printf("in regs(%d): %s\n", regs.size(), regs);
-        var mems = variableBuffer.stream().filter(i -> !i.valid).map(i -> i.r).collect(Collectors.toSet());
-        System.out.printf("in mems(%d): %s\n", mems.size(), mems);
-        System.out.println("\\=== cut done ===/");
+        if (RunConfigs.DEBUG) {
+            System.out.println("/=== cut here ===\\");
+            var links = arrangeableRegs.stream().map(n -> "%s->%s".formatted(n, regMap.get(regNames.indexOf(n)))).collect(Collectors.toList());
+            System.out.printf("links(%d): %s\n", links.size(), String.join(", ", links));
+            System.out.printf("rlinks(%d): %s\n", variableMap.size(), variableMap);
+            var regs = variableBuffer.stream().filter(i -> i.valid).map(i -> i.r).collect(Collectors.toSet());
+            System.out.printf("in regs(%d): %s\n", regs.size(), regs);
+            var mems = variableBuffer.stream().filter(i -> !i.valid).map(i -> i.r).collect(Collectors.toSet());
+            System.out.printf("in mems(%d): %s\n", mems.size(), mems);
+            System.out.println("\\=== cut done ===/");
+        }
     }
 
     /**
